@@ -71,14 +71,23 @@ events = [
     {"id": 2, "title": "Entrega do trabalho", "date": "2026-11-30"},
 ]
 
+limits = {
+    "max_title_length": 100,
+    "max_date_length": 10,
+}
+
 
 def validate_event_data(data):
     if not isinstance(data, dict):
         return {"message": "O corpo da requisição deve ser um objeto JSON"}, 400
     if not isinstance(data.get("title", ""), str) or not data.get("title", "").strip():
         return {"message": "O título deve ser uma string não vazia"}, 400
+    if len(data.get("title", "")) > limits["max_title_length"]:
+        return {"message": f"O título não pode ter mais de {limits['max_title_length']} caracteres"}, 400
     if not isinstance(data.get("date", ""), str) or not data.get("date", "").strip():
         return {"message": "A data do evento deve ser uma string não vazia"}, 400
+    if len(data.get("date", "")) > limits["max_date_length"]:
+        return {"message": f"A data do evento não pode ter mais de {limits['max_date_length']} caracteres"}, 400
     try:
         datetime.strptime(data["date"], "%Y-%m-%d")
     except ValueError:
