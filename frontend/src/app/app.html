@@ -1,0 +1,160 @@
+<main class="page">
+  <header class="hero">
+    <p class="eyebrow">Flask + Angular</p>
+    <h1>Agenda de eventos</h1>
+    <p>Uma SPA simples consumindo os cinco endpoints da API Flask.</p>
+  </header>
+
+  <section class="form-card" aria-labelledby="form-title">
+    <div class="section-heading">
+      <div>
+        <p class="section-label">{{ editingId() === null ? 'Novo evento' : 'Editando evento' }}</p>
+        <h2 id="form-title">
+          {{ editingId() === null ? 'Adicionar à agenda' : 'Atualizar evento #' + editingId() }}
+        </h2>
+      </div>
+
+      @if (editingId() !== null) {
+        <button class="button secondary" type="button" (click)="cancelEdit()">
+          Cancelar edição
+        </button>
+      }
+    </div>
+
+    <form (ngSubmit)="saveEvent()">
+      <label>
+        Título
+        <input
+          type="text"
+          name="title"
+          maxlength="100"
+          placeholder="Ex.: Apresentação de Flask"
+          [(ngModel)]="form.title"
+          required
+        />
+      </label>
+
+      <label>
+        Data
+        <input
+          type="date"
+          name="date"
+          [(ngModel)]="form.date"
+          required
+        />
+      </label>
+
+      <button
+        class="button primary"
+        type="submit"
+        [disabled]="saving() || !form.title.trim() || !form.date"
+      >
+        {{ saving() ? 'Salvando...' : editingId() === null ? 'Adicionar evento' : 'Salvar alterações' }}
+      </button>
+    </form>
+
+    @if (errorMessage()) {
+      <p class="message error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    @if (successMessage()) {
+      <p class="message success" role="status">{{ successMessage() }}</p>
+    }
+  </section>
+
+  <section class="get-card" aria-labelledby="get-title">
+    <div class="section-heading">
+      <div>
+        <p class="section-label">Consultas da API</p>
+        <h2 id="get-title">Validar endpoints GET</h2>
+      </div>
+    </div>
+
+    <div class="get-controls">
+      <div class="get-action">
+        <code>GET /events</code>
+        <button
+          class="button secondary"
+          type="button"
+          [disabled]="loading()"
+          (click)="loadEvents(true)"
+        >
+          {{ loading() ? 'Carregando...' : 'Recarregar lista' }}
+        </button>
+      </div>
+
+      <form class="lookup-form" (ngSubmit)="searchEventById()">
+        <label>
+          <code>GET /events/{{ '{id}' }}</code>
+          <input
+            type="number"
+            name="searchId"
+            min="1"
+            step="1"
+            placeholder="ID do evento"
+            [(ngModel)]="searchId"
+            required
+          />
+        </label>
+
+        <button class="button primary" type="submit" [disabled]="searching()">
+          {{ searching() ? 'Buscando...' : 'Buscar por ID' }}
+        </button>
+      </form>
+    </div>
+
+    @if (searchedEvent()) {
+      <article class="search-result">
+        <div>
+          <span>Evento #{{ searchedEvent()?.id }}</span>
+          <strong>{{ searchedEvent()?.title }}</strong>
+        </div>
+        <time>{{ formatDate(searchedEvent()!.date) }}</time>
+      </article>
+    }
+
+    @if (searchError()) {
+      <p class="message error" role="alert">{{ searchError() }}</p>
+    }
+  </section>
+
+  <section class="events-section" aria-labelledby="events-title">
+    <div class="section-heading">
+      <div>
+        <p class="section-label">Próximos compromissos</p>
+        <h2 id="events-title">Eventos cadastrados</h2>
+      </div>
+      <span class="counter">{{ events().length }} {{ events().length === 1 ? 'evento' : 'eventos' }}</span>
+    </div>
+
+    @if (loading()) {
+      <p class="state">Carregando eventos...</p>
+    } @else if (events().length === 0) {
+      <p class="state">Nenhum evento cadastrado.</p>
+    } @else {
+      <div class="event-list">
+        @for (event of events(); track event.id) {
+          <article class="event-card">
+            <div class="event-date">
+              <span>{{ formatDate(event.date) }}</span>
+            </div>
+
+            <div class="event-content">
+              <h3>{{ event.title }}</h3>
+              <p>Evento #{{ event.id }}</p>
+            </div>
+
+            <div class="event-actions">
+              <button class="button secondary" type="button" (click)="editEvent(event)">
+                Editar
+              </button>
+              <button class="button danger" type="button" (click)="deleteEvent(event)">
+                Remover
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
